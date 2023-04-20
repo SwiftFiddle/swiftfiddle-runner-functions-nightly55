@@ -4,14 +4,13 @@ name: Trigger auto deployment for runner-functions-nightly55
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
-      [ main ]
+    branches: [main]
     paths:
-    - '**'
-    - '.github/workflows/runner-functions-nightly55-AutoDeployTrigger-6c584894-0061-4f4c-b8ba-bbd50d46737b.yml'
+      - "**"
+      - ".github/workflows/runner-functions-nightly55-AutoDeployTrigger-6c584894-0061-4f4c-b8ba-bbd50d46737b.yml"
 
-  # Allow mannually trigger 
-  workflow_dispatch:      
+  # Allow mannually trigger
+  workflow_dispatch:
 
 jobs:
   build:
@@ -35,21 +34,19 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: swiftfiddle.azurecr.io/runner-functions-nightly55:${{ github.sha }}
+          tags: swiftfiddle.azurecr.io/runner-functions-nightly55:latest
           file: ./Dockerfile
           context: ./
-
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.RUNNERFUNCTIONSNIGHTLY55_AZURE_CREDENTIALS }}
-
 
       - name: Deploy to containerapp
         uses: azure/CLI@v1
@@ -57,4 +54,4 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n runner-functions-nightly55 -g swiftfiddle --server swiftfiddle.azurecr.io --username  ${{ secrets.RUNNERFUNCTIONSNIGHTLY55_REGISTRY_USERNAME }} --password ${{ secrets.RUNNERFUNCTIONSNIGHTLY55_REGISTRY_PASSWORD }}
-            az containerapp update -n runner-functions-nightly55 -g swiftfiddle --image swiftfiddle.azurecr.io/runner-functions-nightly55:${{ github.sha }}
+            az containerapp update -n runner-functions-nightly55 -g swiftfiddle --image swiftfiddle.azurecr.io/runner-functions-nightly55:latest
